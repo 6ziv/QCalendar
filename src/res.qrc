@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/image">
+        <file>board.png</file>
+        <file>book.png</file>
+    </qresource>
+    <qresource prefix="/font">
+        <file>test.ttf</file>
+    </qresource>
+</RCC>
