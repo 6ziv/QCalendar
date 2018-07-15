@@ -1,18 +1,23 @@
 #include "mainwindow.h"
 #include"setting.h"
-#include<QDebug>
 #include<QtSql/QSqlError>
 #include<Qtsql/QSqlQuery>
 #include<windows.h>
 #include<stdlib.h>
+#include<QDir>
 int MainWindow::getDate(){
     SYSTEMTIME time;
     GetLocalTime(&time);
     return 31*(12*time.wYear+time.wMonth)+time.wDay;
 }
 bool MainWindow::init(){
+    QString path;
+    wchar_t tmp[1024];
+
+    QString strpath=QString::fromWCharArray(tmp);
     db= QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName("TimeLine");
+
+    db.setDatabaseName(QDir::homePath()+"/"+"TimeLine.db");
     bool ok = db.open();
     if(!ok)return false;
     QSqlQuery query;
@@ -29,6 +34,17 @@ bool MainWindow::init(){
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
+    HANDLE hMutex=CreateMutexW(NULL,FALSE,L"QCalendar_MUTEX");
+    DWORD dwRet=GetLastError();
+    if (hMutex)
+    {
+        if (ERROR_ALREADY_EXISTS == dwRet)
+        {
+            this->close();
+            return;
+        }
+    }
+
 
     if(!init()){
         MessageBoxW(0,L"数据库错误>_<",L"出错啦",MB_OK);
@@ -38,7 +54,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     Image.load(":/image/board.png");
     Image=Image.scaled(160,280);
-    qDebug()<<"load";
+
     this->resize(Image.size());
     this->setMask(Image.mask());
     lab1=new QLabel(this);
@@ -61,7 +77,7 @@ MainWindow::MainWindow(QWidget *parent)
     timer->setInterval(60000);
     ttttt=getDate();
     this->connect(timer,SIGNAL(timeout()),this,SLOT(TIMER()));
-    this->setWindowFlags(this->windowFlags()|Qt::WindowStaysOnTopHint);
+    this->setWindowFlags(this->windowFlags()|Qt::Tool|Qt::WindowStaysOnTopHint);
     this->show();
 
 }
@@ -83,7 +99,6 @@ void MainWindow::ShowLable(){
         query.next();
         if(query.isValid()){
 
-            qDebug()<<"Valid";
             font->setPointSize(10);
             lab1->setFont(*font);
             lab1->setAlignment(Qt::AlignCenter);
@@ -92,7 +107,6 @@ void MainWindow::ShowLable(){
 
 
             QString strtmp=query.value(0).toString();
-            qDebug()<<strtmp;
             if(strtmp.length()<=4)
                 lab1->setText(QString::fromWCharArray(L"距离")+strtmp+QString::fromWCharArray(L"还有"));
             else if(strtmp.length()<=6)
@@ -203,7 +217,6 @@ void MainWindow::getToDoList(){
     while(query.isValid()){
 
         Today.push_back(query.value(0).toString());
-        qDebug()<<query.value(0).toString();
         query.next();
     }
 }
@@ -215,7 +228,6 @@ void MainWindow::mousePressEvent(QMouseEvent *e){
             showing++;
             if(showing>=Today.length())showing=0;
             displaylabel();
-            qDebug()<<showing<<Today.at(showing);
         }
     }
     if(e->button()==Qt::RightButton){
@@ -239,7 +251,6 @@ void MainWindow::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
     painter.drawPixmap(0, 0, Image);
-    qDebug()<<"paint";
 }
 int MainWindow::daysto(int n){
     QDate d1=QDate::currentDate();
@@ -284,7 +295,6 @@ void MainWindow::Delete(int id){
 void MainWindow::Config(QString description,const unsigned int date,const bool forward,const int id){
     if(id==-1)Insert(description,date,forward);
     QSqlQuery query;
-    qDebug()<<date;
     std::string tmp=description.toStdString();
     const char *desc=tmp.c_str();
     query.prepare("UPDATE Events SET desc=:des, time=:dat,forward=:frd  WHERE id=:key;");
@@ -292,8 +302,6 @@ void MainWindow::Config(QString description,const unsigned int date,const bool f
     query.bindValue(":dat",date);
     query.bindValue(":frd",forward);
     query.bindValue(":key",id);
-    qDebug()<<desc<<" "<<date<<" "<<forward;
-    if(!query.exec())qDebug()<<"err";
 
 }
 

@@ -3,6 +3,8 @@
 #include<windows.h>
 Setting::Setting(MainWindow *parent) : QDialog(parent)
 {
+    setAttribute(Qt::WA_QuitOnClose, false);
+
     editing=-1;
     QPixmap bkgnd(":/image/book.png");
     this->resize(bkgnd.size());
