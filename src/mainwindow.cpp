@@ -1,6 +1,9 @@
 #include "mainwindow.h"
 #include"setting.h"
 #include<QDebug>
+#include<QDesktopWidget>
+#include<QApplication>
+#include<QSize>
 #include<QtSql/QSqlError>
 #include<Qtsql/QSqlQuery>
 #include<windows.h>
@@ -35,7 +38,8 @@ bool MainWindow::init(){
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-
+    QSize size=QApplication::desktop()->size();
+    this->setGeometry(size.width()-200,size.height()-280,160,280);
     HANDLE hMutex=CreateMutexW(NULL,FALSE,L"QCalendar_MUTEX");
     DWORD dwRet=GetLastError();
     if (hMutex)
@@ -80,8 +84,9 @@ MainWindow::MainWindow(QWidget *parent)
     ttttt=getDate();
     this->connect(timer,SIGNAL(timeout()),this,SLOT(TIMER()));
     this->setWindowFlags(this->windowFlags()|Qt::Tool|Qt::WindowStaysOnTopHint);
-    this->show();
 
+
+    this->show();
 }
 void MainWindow::TIMER(){
     if(getDate()!=ttttt){
