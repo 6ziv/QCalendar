@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include"setting.h"
+#include<QDebug>
 #include<QtSql/QSqlError>
 #include<Qtsql/QSqlQuery>
 #include<windows.h>
@@ -34,6 +35,7 @@ bool MainWindow::init(){
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
+
     HANDLE hMutex=CreateMutexW(NULL,FALSE,L"QCalendar_MUTEX");
     DWORD dwRet=GetLastError();
     if (hMutex)
@@ -93,7 +95,7 @@ void MainWindow::ShowLable(){
     if(Today.size()==0){
         QSqlQuery query;
         int tod=getDate();
-        query.prepare("SELECT * FROM Events WHERE time = ( SELECT MIN(time) FROM Events WHERE time>:val);");
+        query.prepare("SELECT * FROM Events WHERE (time = ( SELECT MIN(time) FROM Events WHERE (time>:val AND forward)) AND forward);");
         query.bindValue(":val",tod);
         query.exec();
         query.next();
