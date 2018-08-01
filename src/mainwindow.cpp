@@ -302,7 +302,7 @@ void MainWindow::Config(QString description,const unsigned int date,const bool f
     query.bindValue(":dat",date);
     query.bindValue(":frd",forward);
     query.bindValue(":key",id);
-
+    query.exec();
 }
 
 MainWindow::~MainWindow()
